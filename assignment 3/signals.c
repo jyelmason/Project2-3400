@@ -24,23 +24,23 @@ sig2msg (int signum, size_t *length)
   assert (length != NULL);
   char *msg = NULL;
   switch(signum){
-  case 11:
+  case SIGSEGV:
     msg = "SEGFAULT";
     *length = 8;
     break;
-  case 1:
+  case SIGHUP:
     msg = "HANGUP";
     *length = 6;
     break;
-  case 2:
+  case SIGINT:
     msg = "INTERRUPT";
     *length = 9;
     break;
-  case 8:
+  case SIGFPE:
     msg = "FLOATING POINT";
     *length = 14;
     break;
-  case 14:
+  case SIGALRM:
     msg = "ALARM CLOCK";
     *length = 11;
     break;
@@ -56,15 +56,15 @@ getsig (char *name)
 {
   // TODO: Complete this function for the other signals
   if (!strncmp (name, "SEGV", 4))
-    return 11; // SIGSEGV = 11
+    return SIGSEGV; // SIGSEGV = 11
   else if (!strncmp (name, "HUP", 3))
-    return 1;
+    return SIGHUP;
   else if (!strncmp (name, "INT", 3))
-    return 2;
+    return SIGINT;
   else if (!strncmp (name, "FPE", 3))
-    return 8;
+    return SIGFPE;
   else if (!strncmp (name, "ALRM", 4))
-    return 14;
+    return SIGALRM;
   printf ("returning 0 for %s\n", name);
   return 0;
 }
