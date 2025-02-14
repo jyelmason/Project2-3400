@@ -1,0 +1,13 @@
+# list of integration tests
+#  format: run_test <TAG> <ARGS>
+#    <TAG>      used as the root for all filenames (i.e., "expected/$TAG.txt")
+#    <ARGS>     command-line arguments to test
+
+run_test    MIN_segfault            "-s 11 SEGV"
+run_test    MIN_sighup              "-s 1 HUP"
+run_test    MIN_sigint              "-s 2 INT"
+run_test    MIN_sighup_hup          "-s 1 -s 2 HUP"
+run_test    MIN_sighup_fpe          "-s 1 -s 2 FPE"
+run_test    MIN_all_alarm           "-s 1 -s 2 -s 8 -s 11 -s 14 ALRM"
+run_test    MIN_all_fpe             "-s 1 -s 2 -s 8 -s 11 -s 14 FPE"
+run_test    FULL_tstp               ""
