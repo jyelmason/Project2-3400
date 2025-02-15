@@ -82,8 +82,6 @@ main (int argc, char **argv)
 int
 cmdline (int argc, char **argv, size_t *overrides, int **signals, bool *count)
 {
-	char *semname = getlogin ();
-  assert (semname != NULL);
   bool override[SIGNAL_MAX];
   memset (override, 0, sizeof (override));
   int option;
@@ -116,18 +114,34 @@ cmdline (int argc, char **argv, size_t *overrides, int **signals, bool *count)
       size_t count = 0;
       if (override[SIGSEGV])
       	{
-        	(*signals)[count++] = SIGSEGV;
-        	run_child(sizeof(*signals), *signals, semname);
-        	wait(NULL);
+          (*signals)[count++] = SIGSEGV;
+        	run_child(sizeof(*signals), *signals, "jyelmason");
+          wait(NULL);
       	}
       if (override[SIGHUP])
-        (*signals)[count++] = SIGHUP;
+        {
+          (*signals)[count++] = SIGHUP;
+          run_child(sizeof(*signals), *signals, "jyelmason");
+          wait(NULL);
+        }
       if (override[SIGINT])
-        (*signals)[count++] = SIGINT;
+        {
+          (*signals)[count++] = SIGINT;
+          run_child(sizeof(*signals), *signals, "jyelmason");
+          wait(NULL);
+        }
       if (override[SIGFPE])
-        (*signals)[count++] = SIGFPE;
+        {
+          (*signals)[count++] = SIGFPE;
+          run_child(sizeof(*signals), *signals, "jyelmason");
+          wait(NULL);
+        }
       if (override[SIGALRM])
-        (*signals)[count++] = SIGALRM;
+        {
+          (*signals)[count++] = SIGALRM;
+          run_child(sizeof(*signals), *signals, "jyelmason");
+          wait(NULL);
+        }
       *overrides = count;
     }
 
