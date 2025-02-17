@@ -108,18 +108,37 @@ run_with_jump (char *semname)
   if (start == NULL)
     return -1;
 
+  pid_t child = fork ();
+  if (child < 0)
+    return child;
+
+  if (child == 0)
+  {
+    struct sigaction sa;
+    memset(&sa, 0 ,sizeof(sa));
+    sa.sa_handler = sigjmp_handler;
+    if(sigaction (SIGTSTP,&sa, NULL) == -1)
+        printf("Failed to overwrite SIGTSTP.\n");
+
+    sem_post (start);
+    if (sigsetjmp (context, 0))
+    {
+        
+    }else
+    {
+      printf ("Received second TSTP\n");
+      exit (EXIT_SUCCESS);
+    }
+    while (1) ;
+
+  }
+
   // Call fork() to create the child as before. The parent's code is marked
   // below. Implement the child here. The child should override ONLY the
   // SIGTSTP signal to use the sigjmp_handler() above. After overriding the
   // signal handler, the child should do this:
 
-  //    sem_post (start);
-  //    if (sigsetjmp (context, 0))
-  //      {
-  //        ...
-  //      }
-  //    while (1) ;
-
+  
   // The sem_post() tells the parent the child process has started. The
   // sigsetjmp() sets a jump point that the signal handler will use. Whenever
   // the SIGTSTP signal occurs, the signal handler will jump to this jump point
@@ -129,7 +148,7 @@ run_with_jump (char *semname)
   //    printf ("Received second TSTP\n");
   //    exit (EXIT_SUCCESS);
 
-  pid_t child = -1;
+  //pid_t child = -1;
 
   // Parent's code. Wait until child starts, clean up the semaphore, then
   // return the child's PID.
