@@ -64,31 +64,25 @@ run_child (size_t number_of_signals, int signals[], char *semname)
       // arrives. The child should not do anything after this.
       struct sigaction sa;
       memset(&sa, 0 ,sizeof(sa));
-      for(int i = 0; i < number_of_signals; ++i)
-      {
-					if(signals[i] == SIGSEGV 
-					|| signals[i] == SIGHUP  
-					|| signals[i] == SIGINT 
-					|| signals[i] == SIGFPE
-					|| signals[i] == SIGALRM)
-						sa.sa_handler = sig_handler;
-					else
-						sa.sa_handler = sig_unknown;
-      }
       
-      if(sigaction (SIGSEGV,&sa, NULL) == -1)
+      sa.sa_handler = sig_unknown;
+      
+			if(sigaction (SIGSEGV,&sa, NULL) == -1)
         printf("Failed to overwrite SIGSEGV.\n");
-      else if(sigaction(SIGHUP,&sa, NULL)== -1){
+			if(sigaction(SIGHUP,&sa, NULL)== -1)
         printf("Failed to overwrite SIGHUP.\n");
-      }else if(sigaction(SIGINT,&sa, NULL)== -1){
+      if(sigaction(SIGINT,&sa, NULL)== -1)
         printf("Failed to overwrite SIGINT.\n");
-      }else if(sigaction(SIGFPE,&sa, NULL)== -1){
+      if(sigaction(SIGFPE,&sa, NULL)== -1)
         printf("Failed to overwrite SIGFPE.\n");
-      }else if(sigaction(SIGALRM,&sa, NULL)== -1){
+      if(sigaction(SIGALRM,&sa, NULL)== -1)
         printf("Failed to overwrite SIGALRM.\n");
-      }
+
+			sa.sa_handler = sig_handler;        
+      for(int i = 0; i < number_of_signals; ++i)
+				sigaction(signals[i], &sa, NULL);			
+      
       sem_post (start);
-      printf("Entering loop\n");
       while (1);
     }
 
