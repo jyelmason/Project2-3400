@@ -26,9 +26,9 @@ sig_handler (int signum)
 {
   // TODO: Using write(), print out the message for the signal, then exit.
   size_t length = 0;
-  char *msg = sig2msg(signum,&length);
-  write(STDOUT_FILENO, msg, length);
-  write(STDOUT_FILENO, "\n",1);
+  char *msg = sig2msg (signum, &length);
+  write (STDOUT_FILENO, msg, length);
+  write (STDOUT_FILENO, "\n", 1);
   exit (EXIT_SUCCESS);
 }
 
@@ -63,27 +63,28 @@ run_child (size_t number_of_signals, int signals[], char *semname)
       // child has started, then enter an infinite loop until the signal
       // arrives. The child should not do anything after this.
       struct sigaction sa;
-      memset(&sa, 0 ,sizeof(sa));
-      
-      sa.sa_handler = sig_unknown;
-      
-			if(sigaction (SIGSEGV,&sa, NULL) == -1)
-        printf("Failed to overwrite SIGSEGV.\n");
-			if(sigaction(SIGHUP,&sa, NULL)== -1)
-        printf("Failed to overwrite SIGHUP.\n");
-      if(sigaction(SIGINT,&sa, NULL)== -1)
-        printf("Failed to overwrite SIGINT.\n");
-      if(sigaction(SIGFPE,&sa, NULL)== -1)
-        printf("Failed to overwrite SIGFPE.\n");
-      if(sigaction(SIGALRM,&sa, NULL)== -1)
-        printf("Failed to overwrite SIGALRM.\n");
+      memset (&sa, 0, sizeof (sa));
 
-			sa.sa_handler = sig_handler;        
-      for(int i = 0; i < number_of_signals; ++i)
-				sigaction(signals[i], &sa, NULL);			
-      
+      sa.sa_handler = sig_unknown;
+
+      if (sigaction (SIGSEGV, &sa, NULL) == -1)
+        printf ("Failed to overwrite SIGSEGV.\n");
+      if (sigaction (SIGHUP, &sa, NULL) == -1)
+        printf ("Failed to overwrite SIGHUP.\n");
+      if (sigaction (SIGINT, &sa, NULL) == -1)
+        printf ("Failed to overwrite SIGINT.\n");
+      if (sigaction (SIGFPE, &sa, NULL) == -1)
+        printf ("Failed to overwrite SIGFPE.\n");
+      if (sigaction (SIGALRM, &sa, NULL) == -1)
+        printf ("Failed to overwrite SIGALRM.\n");
+
+      sa.sa_handler = sig_handler;
+      for (int i = 0; i < number_of_signals; ++i)
+        sigaction (signals[i], &sa, NULL);
+
       sem_post (start);
-      while (1);
+      while (1)
+        ;
     }
 
   // Do NOT modify these three lines. These are the parent's code. It must

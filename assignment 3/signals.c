@@ -23,29 +23,29 @@ sig2msg (int signum, size_t *length)
 {
   assert (length != NULL);
   char *msg = NULL;
-  switch(signum){
-  case SIGSEGV:
-    msg = "SEGFAULT";
-    *length = 8;
-    break;
-  case SIGHUP:
-    msg = "HANGUP";
-    *length = 6;
-    break;
-  case SIGINT:
-    msg = "INTERRUPT";
-    *length = 9;
-    break;
-  case SIGFPE:
-    msg = "FLOATING POINT";
-    *length = 14;
-    break;
-  case SIGALRM:
-    msg = "ALARM CLOCK";
-    *length = 11;
-    break;
-
-  }
+  switch (signum)
+    {
+    case SIGSEGV:
+      msg = "SEGFAULT";
+      *length = 8;
+      break;
+    case SIGHUP:
+      msg = "HANGUP";
+      *length = 6;
+      break;
+    case SIGINT:
+      msg = "INTERRUPT";
+      *length = 9;
+      break;
+    case SIGFPE:
+      msg = "FLOATING POINT";
+      *length = 14;
+      break;
+    case SIGALRM:
+      msg = "ALARM CLOCK";
+      *length = 11;
+      break;
+    }
   return msg;
 }
 
@@ -82,11 +82,12 @@ reset_signal (int signal)
   // Reset a triggered signal using sigprocmask (SIG_UNBLOCK...).
   // Note that this starts with an empty sigset_t, then adds ONLY
   // the unblocked signal to it.
-  // See http://pubs.opengroup.org/onlinepubs/9699919799/functions/sigprocmask.html.
+  // See
+  // http://pubs.opengroup.org/onlinepubs/9699919799/functions/sigprocmask.html.
   sigset_t ss;
   sigemptyset (&ss);
   sigaddset (&ss, signal);
-  
+
   sigprocmask (SIG_BLOCK, &ss, NULL);
   sigprocmask (SIG_SETMASK, &ss, NULL);
   sigprocmask (SIG_UNBLOCK, &ss, NULL);
@@ -94,15 +95,17 @@ reset_signal (int signal)
 
 /* Prints out the signal message; make this reset the signal, then
    jumps to the context with a siglongjmp().
-   See http://pubs.opengroup.org/onlinepubs/9699919799/functions/siglongjmp.html. */
+   See
+   http://pubs.opengroup.org/onlinepubs/9699919799/functions/siglongjmp.html.
+ */
 void
 sigjmp_handler (int signum)
 {
-	size_t length = 0;
-	char *msg = sig2msg(signum,&length);
-	reset_signal(signum);
-	siglongjmp(context, 1);
-	write (STDOUT_FILENO, msg, length); 
+  size_t length = 0;
+  char *msg = sig2msg (signum, &length);
+  reset_signal (signum);
+  siglongjmp (context, 1);
+  write (STDOUT_FILENO, msg, length);
   write (STDOUT_FILENO, "SUSPEND\n", 8);
 }
 
@@ -121,33 +124,35 @@ run_with_jump (char *semname)
     return child;
 
   if (child == 0)
-  {
-    struct sigaction sa;
-    memset(&sa, 0 ,sizeof(sa));
-    sa.sa_handler = sigjmp_handler;
-    if(sigaction (SIGTSTP,&sa, NULL) == -1)
-        printf("Failed to overwrite SIGTSTP.\n");
+    {
+      int count = 0;
+      struct sigaction sa;
+      memset (&sa, 0, sizeof (sa));
+      sa.sa_handler = sigjmp_handler;
+      if (sigaction (SIGTSTP, &sa, NULL) == -1)
+        printf ("Failed to overwrite SIGTSTP.\n");
 
-    sem_post (start);
-    if (sigsetjmp (context, 1))
-    {
-    	sleep(1);
-    }else
-    {
-      printf ("Received second TSTP\n");
-      sleep(1);
-      exit (EXIT_SUCCESS);
+      sem_post (start);
+      if (sigsetjmp (context, 1))
+        {
+
+          sleep (1);
+        }
+      else
+        {
+          printf ("Received second TSTP\n");
+          sleep (1);
+          exit (EXIT_SUCCESS);
+        }
+      while (1)
+        ;
     }
-    while (1) ;
-
-  }
 
   // Call fork() to create the child as before. The parent's code is marked
   // below. Implement the child here. The child should override ONLY the
   // SIGTSTP signal to use the sigjmp_handler() above. After overriding the
   // signal handler, the child should do this:
 
-  
   // The sem_post() tells the parent the child process has started. The
   // sigsetjmp() sets a jump point that the signal handler will use. Whenever
   // the SIGTSTP signal occurs, the signal handler will jump to this jump point
@@ -157,7 +162,7 @@ run_with_jump (char *semname)
   //    printf ("Received second TSTP\n");
   //    exit (EXIT_SUCCESS);
 
-  //pid_t child = -1;
+  child = -1;
 
   // Parent's code. Wait until child starts, clean up the semaphore, then
   // return the child's PID.

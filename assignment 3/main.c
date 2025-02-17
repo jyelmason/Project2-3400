@@ -1,7 +1,7 @@
 /*
  * COMP 3400: Signals Assignment
  *
- * Name: 
+ * Name:
  */
 
 #include <assert.h>
@@ -21,7 +21,7 @@
 
 #define SIGNAL_MAX 20
 
-int cmdline (int, char**, size_t*, int**, bool*);
+int cmdline (int, char **, size_t *, int **, bool *);
 
 void
 usage (void)
@@ -60,11 +60,10 @@ main (int argc, char **argv)
       // name (e.g., SEGV) into its corresponding integer and send the
       // signal to the child process.
 
-			pid_t child = run_child(count, signals, semname);
-			int sig_num = getsig(argv[argc-1]);
-			kill(child, sig_num);
- 
-		
+      pid_t child = run_child (count, signals, semname);
+      int sig_num = getsig (argv[argc - 1]);
+      kill (child, sig_num);
+
       // Wait until the child exits, then clean up the signals array
       wait (NULL);
       if (signals != NULL)
@@ -74,12 +73,12 @@ main (int argc, char **argv)
 
   // FULL CRITERIA: Use a long jump to capture a signal multiple times.
   // After starting a child process with run_with_jump(), send it the
-  // TSTP signal twice, pausing for a second between each. 
+  // TSTP signal twice, pausing for a second between each.
 
-	pid_t newChild = run_with_jump(semname);
-	kill(newChild, SIGTSTP);
-	kill(newChild, SIGTSTP);
-  
+  pid_t newChild = run_with_jump (semname);
+  kill (newChild, SIGTSTP);
+  kill (newChild, SIGTSTP);
+
   if (signals != NULL)
     free (signals);
   return EXIT_SUCCESS;
