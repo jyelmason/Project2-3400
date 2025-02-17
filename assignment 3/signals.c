@@ -86,6 +86,9 @@ reset_signal (int signal)
   sigset_t ss;
   sigemptyset (&ss);
   sigaddset (&ss, signal);
+  
+  sigprocmask (SIG_BLOCK, &ss, NULL);
+  sigprocmask (SIG_SETMASK, &ss, NULL);
   sigprocmask (SIG_UNBLOCK, &ss, NULL);
 }
 
@@ -95,6 +98,11 @@ reset_signal (int signal)
 void
 sigjmp_handler (int signum)
 {
+	size_t length = 0;
+	char *msg = sig2msg(signum,&length);
+	reset_signal(signum);
+	siglongjmp(context, 1);
+	write (STDOUT_FILENO, msg, length); 
   write (STDOUT_FILENO, "SUSPEND\n", 8);
 }
 
@@ -121,12 +129,13 @@ run_with_jump (char *semname)
         printf("Failed to overwrite SIGTSTP.\n");
 
     sem_post (start);
-    if (sigsetjmp (context, 0))
+    if (sigsetjmp (context, 1))
     {
-        
+    	sleep(1);
     }else
     {
       printf ("Received second TSTP\n");
+      sleep(1);
       exit (EXIT_SUCCESS);
     }
     while (1) ;

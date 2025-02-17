@@ -76,6 +76,10 @@ main (int argc, char **argv)
   // After starting a child process with run_with_jump(), send it the
   // TSTP signal twice, pausing for a second between each. 
 
+	pid_t newChild = run_with_jump(semname);
+	kill(newChild, SIGTSTP);
+	kill(newChild, SIGTSTP);
+  
   if (signals != NULL)
     free (signals);
   return EXIT_SUCCESS;
