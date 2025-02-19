@@ -1,0 +1,1 @@
+CKSUM(../data/f4.txt) = ''
