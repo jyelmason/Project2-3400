@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "pipe.h"
 
@@ -40,20 +41,25 @@ create_cksum_child (int *pipe, const char *filename)
   pid_t child = fork();
   if(child < 0)
   {
-    close(pipe);
-    return NULL;
+    close(pipe[0]);
+    close(pipe[1]);
+    return child;
   }
+
   if(child == 0)
   {
-    
-    int ret = 0;
-    ret = execlp("cksum","cksum",filename,NULL);
+    close(pipe[0]);
+    dup2(pipe[1],STDOUT_FILENO);
+    int ret = execlp("cksum","cksum",filename,NULL);
     if(ret == -1)
     {
-      printf("execlp unsuccessful");
+      printf("execlp unsuccessful\n");
     }
   }
-  return -1;
+
+  
+  
+  return child;
 }
 
 /* Uses the cksum program on the input filename. Start by creating a pipe
@@ -68,7 +74,23 @@ create_cksum_child (int *pipe, const char *filename)
 char *
 get_cksum (const char *filename)
 {
-  return NULL;
+  int fd[2];
+  int result = pipe (fd);
+  if(result < 0){
+    return NULL;
+  }
+  char* buffer = calloc(1024, sizeof(char));
+
+  pid_t child_pid = create_cksum_child (fd, filename);
+  if(child_pid < 0)
+  {
+    printf("child failed\n");
+    return NULL;
+  }
+
+  close(fd[1]);
+  read(fd[0],buffer,1023);
+  return buffer;
 }
 
 /* Opens two FIFOs, one for reading (O_RDONLY) and one for writing
