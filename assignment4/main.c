@@ -94,11 +94,15 @@ main (int argc, char **argv)
       // get_file_name() with the lineno command-line parameter to get
       // the file name.
       char *index = "data/index";
+      int fd = open ("data/f1.txt", O_RDONLY);
+      size_t size = get_file_size(fd);
+      char *mmap_addr = open_index(index, &fd, &size);
+      char* filepath = get_file_name(mmap_addr, lineno, size);
 
       // Send that name (filepath) to spawn_cksum() to get the value and
       // print it out.
-      // char *sum = spawn_cksum (filepath);
-      // printf ("CKSUM(%s) = '%s'\n", filepath, sum);
+      char *sum = spawn_cksum (filepath);
+      printf ("CKSUM(%s) = '%s'\n", filepath, sum);
       return EXIT_SUCCESS;
     }
 }

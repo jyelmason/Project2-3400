@@ -20,6 +20,12 @@
 size_t
 get_file_size (int fd)
 {
+	struct stat info;
+	assert(fstat(fd, &info) >= 0);
+	
+	if(info.st_size > 0)
+		return info.st_size;
+		
   return -1;
 }
 
@@ -40,7 +46,17 @@ open_index (const char *index, int *fd, size_t *size)
 {
   assert (fd != NULL);
   assert (size != NULL);
-  return NULL;
+  
+	*fd = open(index, O_RDONLY);
+  *size = get_file_size(*fd);
+ 	char *mmap_addr = mmap (NULL, *size, PROT_READ, MAP_PRIVATE, *fd, 0);
+  
+  if(*fd <= 0 || *size <= 0 || mmap_addr == MAP_FAILED){
+ 		return NULL;
+ 		close(*fd);
+ 	}
+ 	else
+ 		return mmap_addr;
 }
 
 /* Returns a pointer to the beginning of line number lineno. First check
@@ -55,6 +71,9 @@ open_index (const char *index, int *fd, size_t *size)
 char *
 get_file_name (char *map, size_t lineno, size_t filesize)
 {
+	if(lineno <= filesize)
+		return &map[lineno*LINE_LENGTH];	
+
   return NULL;
 }
 
@@ -80,9 +99,40 @@ spawn_cksum (char *filename)
   // memory leaks.
   const char *path = "/usr/bin/cksum";
   char *const argv[] = { "cksum", filename, NULL };
-
+  int pipefd[2];
+  pid_t child = -1;
+  assert(pipe(pipefd) == 0);
+  
+  posix_spawn_file_actions_t file_actions;
+  posix_spawn_file_actions_init(&file_actions);
+  posix_spawn_file_actions_addclose(&file_actions, pipefd[0]);
+  posix_spawn_file_actions_adddup2(&file_actions, pipefd[1], STDOUT_FILENO);
+  
+  assert(posix_spawn(&child, path, &file_actions, NULL, argv, NULL) == 0);
+  posix_spawn_file_actions_destroy(&file_actions);
+ 
+  close(pipefd[1]); 
+  
   // Parent code: read the value back from the pipe into a dynamically
   // allocated buffer. Wait for the child to exit, then return the
   // buffer.
-  return get_cksum (filename); // Change this!
+  size_t buffer_size = 256;
+  char *buffer = malloc(buffer_size);
+  
+  ssize_t bytes_read = read(pipefd[0], buffer, buffer_size-1);
+  buffer[bytes_read] = '\0';
+  waitpid(child, NULL, 0);
+  close(pipefd[0]);
+  
+  return buffer;
 }
+
+
+
+
+
+
+
+
+
+
