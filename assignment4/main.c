@@ -40,12 +40,13 @@ main (int argc, char **argv)
       usage ();
       return EXIT_FAILURE;
     }
-
   if (!use_server && !use_map)
     {
       // FIRST STEP: Send the file name to get_cksum(), then split the
       // string. Print the following message:
+      char *cksum = get_cksum(fname);
       char *sum = "";
+      sum = split_string(cksum);
       printf ("CKSUM(%s) = '%s'\n", fname, sum);
       // Free sum after printing it.
     }
@@ -57,7 +58,8 @@ main (int argc, char **argv)
           = build_name ("pc"); // FIFO for parent-to-child communication
 
       // Create the FIFOs with read and write permissions
-
+      mkfifo(fifo_cp,S_IRUSR | S_IWUSR);
+      mkfifo(fifo_pc,S_IRUSR | S_IWUSR);
       // Create the child and call fifo_server() in that process.
       pid_t child = fork ();
       assert (child >= 0);
@@ -74,17 +76,25 @@ main (int argc, char **argv)
       // before, it will send the file name into a FIFO that the child
       // is reading from. The child will get the cksum and send it back
       // through the FIFO, printing as before:
-      // printf ("CKSUM(%s) = '%s'\n", fname, sum);
 
       // Don't forget to close the FIFOs before exiting.
+      
       char buffer[BUFFER_LENGTH];
       memset (buffer, 0, sizeof (buffer));
-
+      int fd_pc = open(fifo_pc,O_WRONLY);
+      int fd_cp = open(fifo_cp,O_RDONLY);
+      write(fd_pc,fname,strlen(fname)+1);
+      
+      read(fd_cp,buffer,BUFFER_LENGTH);
       // Clean up the FIFOs before exiting
+      printf ("CKSUM(%s) = '%s'\n", fname, buffer);
+      close(fd_cp);
+      close(fd_pc);
       unlink (fifo_cp);
       free (fifo_cp);
       unlink (fifo_pc);
       free (fifo_pc);
+
 
       return EXIT_SUCCESS;
     }

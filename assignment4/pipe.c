@@ -108,5 +108,30 @@ get_cksum (const char *filename)
 char *
 fifo_server (char *fifo_in, char *fifo_out)
 {
-  return NULL;
+  
+  int read_fifo = open(fifo_in,O_RDONLY);
+  if(read_fifo == -1)
+  {
+    fprintf (stderr, "Failed to open FIFO\n");
+    unlink (fifo_in);
+    return NULL;
+  }
+  
+  int write_fifo = open(fifo_out,O_WRONLY);
+  if(write_fifo == -1)
+  {
+    fprintf (stderr, "Failed to open FIFO\n");
+    unlink (fifo_out);
+    return NULL;
+  }
+
+  char buffer[256];
+  read(read_fifo,buffer,256);
+  char *cksum = get_cksum(buffer);
+  char* cksum_val = split_string(cksum);
+  write(write_fifo,cksum_val,strlen(cksum_val)+1);
+  close(write_fifo);
+  close(read_fifo);
+
+  return cksum_val;
 }
