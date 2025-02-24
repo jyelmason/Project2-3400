@@ -48,6 +48,7 @@ main (int argc, char **argv)
       char *sum = "";
       sum = split_string(cksum);
       printf ("CKSUM(%s) = '%s'\n", fname, sum);
+      free(sum);
       // Free sum after printing it.
     }
   else if (use_server)
@@ -104,15 +105,18 @@ main (int argc, char **argv)
       // get_file_name() with the lineno command-line parameter to get
       // the file name.
       char *index = "data/index";
-      int fd = open ("data/f1.txt", O_RDONLY);
-      size_t size = get_file_size(fd);
+      int fd;
+      size_t size;
       char *mmap_addr = open_index(index, &fd, &size);
       char* filepath = get_file_name(mmap_addr, lineno, size);
+      
 
       // Send that name (filepath) to spawn_cksum() to get the value and
       // print it out.
       char *sum = spawn_cksum (filepath);
+      split_string(sum);
       printf ("CKSUM(%s) = '%s'\n", filepath, sum);
+      free(sum);
       return EXIT_SUCCESS;
     }
 }

@@ -23,10 +23,7 @@ get_file_size (int fd)
 	struct stat info;
 	assert(fstat(fd, &info) >= 0);
 	
-	if(info.st_size > 0)
-		return info.st_size;
-		
-  return -1;
+	return info.st_size;
 }
 
 /* Opens the index file based on the provided name. Returns a pointer to
@@ -51,9 +48,9 @@ open_index (const char *index, int *fd, size_t *size)
   *size = get_file_size(*fd);
  	char *mmap_addr = mmap (NULL, *size, PROT_READ, MAP_PRIVATE, *fd, 0);
   
-  if(*fd <= 0 || *size <= 0 || mmap_addr == MAP_FAILED){
+  if(*fd < 0 || mmap_addr == MAP_FAILED){
+		close(*fd);
  		return NULL;
- 		close(*fd);
  	}
  	else
  		return mmap_addr;
@@ -71,7 +68,7 @@ open_index (const char *index, int *fd, size_t *size)
 char *
 get_file_name (char *map, size_t lineno, size_t filesize)
 {
-	if(lineno <= filesize)
+	if(lineno*LINE_LENGTH <= filesize)
 		return &map[lineno*LINE_LENGTH];	
 
   return NULL;
