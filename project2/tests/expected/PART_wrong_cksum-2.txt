@@ -1,0 +1,4 @@
+../data/wrong_cksum.txt:
+  permissions: 100640
+  size: 19
+  cksum: 8567249502

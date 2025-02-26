@@ -1,0 +1,18 @@
+# list of integration tests
+#  format: run_test <TAG> <ARGS>
+#    <TAG>      used as the root for all filenames (i.e., "expected/$TAG.txt")
+#    <ARGS>     command-line arguments to test
+
+run_test    PART_json_max           "/comp3400.int.req /comp3400.int.resp ../data/json_max.txt"
+run_test    PART_wrong_cksum        "/comp3400.int.req /comp3400.int.resp ../data/wrong_cksum.txt"
+run_test    PART_non_exist          "/comp3400.int.req /comp3400.int.resp this_file_does_not_exist"
+
+run_test    MIN_json_max            "/comp3400.int.req /comp3400.int.resp ../data/json_max.txt"
+run_test    MIN_wrong_size          "/comp3400.int.req /comp3400.int.resp ../data/wrong_size.txt"
+run_test    MIN_wrong_perms         "/comp3400.int.req /comp3400.int.resp ../data/wrong_perms.txt"
+run_test    MIN_wrong_cksum         "/comp3400.int.req /comp3400.int.resp ../data/wrong_cksum.txt"
+run_test    MIN_multiple            "/comp3400.int.req /comp3400.int.resp ../data/json_bad_id.txt ../data/json_bad_token.txt ../data/json_bad.txt ../data/json_int.txt ../data/json_max.txt ../data/json_multiple.txt ../data/json_several.txt ../data/json.txt"
+run_test    MIN_int_kill            "-k /comp3400.int.req /comp3400.int.resp ../data/int.txt"
+
+run_test    FULL_start_kill         "-k -p INT.PID /comp3400.int.req /comp3400.int.resp ../data/int.txt"
+run_test    FULL_output             "-k -o outputs/OUTFILE /comp3400.int.req /comp3400.int.resp ../data/int.txt"

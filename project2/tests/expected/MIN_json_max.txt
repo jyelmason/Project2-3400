@@ -1,0 +1,4 @@
+../data/json_max.txt:
+  permissions: 100640
+  size: 43
+  cksum: 3313559481
