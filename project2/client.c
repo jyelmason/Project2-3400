@@ -26,31 +26,47 @@
 bool
 get_record (char *filename, char *mqreq, char *mqresp, ids_resp_t **response)
 {
-  mqd_t req_msg = mq_open(mqreq,O_WRONLY,0600,NULL);
+  mqd_t req_msg = mq_open(mqreq, O_WRONLY);
   if(req_msg == -1)
   {
     perror("req_msg failed");
     return false;
   }
-  mq_send(req_msg,filename,strlen(filename)+1,10);
+  
+  ids_req_t request;
+  
+  request.type = REQUEST;
+	strcpy(request.filename, filename);
+  
+  mq_send(req_msg, (const char*) &request, sizeof(request) , 10);
 
-  mqd_t resp_msg = mq_open(mqresp,O_RDONLY);
+  mqd_t resp_msg = mq_open(mqresp, O_RDONLY);
   if(resp_msg == -1)
   {
     perror("resp_msg failed");
     return false;
   }
   struct mq_attr attr;
-  mq_getattr(mqresp,&attr);
-  char *buffer = calloc(attr.mq_msgsize,1);
+  mq_getattr(resp_msg, &attr);
+  ids_resp_t *buffer = calloc(attr.mq_msgsize,1);
   unsigned int priority = 0;
-  mq_recieve(resp_msg,buffer,attr.mq_msgsize,&priority);
+  mq_receive(resp_msg, (char*) buffer, attr.mq_msgsize, &priority);
   *response = buffer;
 
-  free(buffer);
   mq_close(req_msg);
   mq_close(resp_msg);
   return true;
+}
+
+char *
+split_string (char *buffer)
+{
+  int count = 0;
+  while(buffer[count] != ' ' && buffer[count] != '\0')
+    count++;
+    
+  buffer[count] = '\0';
+  return buffer;
 }
 
 /* Given an ids_resp_t struct from the server for the specified file
@@ -71,8 +87,10 @@ check_record (char *filename, ids_resp_t *response)
   // is wrong, replace the printed message with:
   // printf ("  size: %zu [MISMATCH: %zu]\n", server_size, my_size);
   int pipefd[2];
-  int result = pipe(pipefd);
+	pipe(pipefd);
   pid_t child = fork();
+  bool match = true;
+  
   if(child < 0)
   {
     return false;
@@ -91,7 +109,38 @@ check_record (char *filename, ids_resp_t *response)
   close(pipefd[1]);
   int size = 256;
   char buffer[size];
-  int cksum = read(pipefd[0],buffer,size);
+  int bytesRead = read(pipefd[0], buffer, size-1);
+  buffer[bytesRead] = '\0';
   
-  return true;
+  split_string(buffer);
+  
+  struct stat stats;
+  stat(filename, &stats);
+  
+  printf ("%s:\n", filename);
+  if(stats.st_mode == response -> mode)
+		printf ("  permissions: %o\n", response->mode);
+	else
+	{
+		match = false;
+		printf ("  permisions: %o [MISMATCH: %o]\n", response->mode, stats.st_mode);
+	}
+		
+	if(stats.st_size == response -> size)
+		printf ("  size: %zu\n", response -> size);
+	else
+	{
+		match = false;
+		printf ("  size: %zu [MISMATCH: %zu]\n", response->size, stats.st_size);
+	}
+			
+	if(strcmp(buffer, response -> cksum) == 0)
+		  printf ("  cksum: %s\n", response -> cksum);
+	else
+	{
+		match = false;
+		printf ("  cksum: %s [MISMATCH: %s]\n", response -> cksum, buffer);		
+	}
+ 
+  return match;
 }

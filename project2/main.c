@@ -43,6 +43,11 @@ main (int argc, char **argv)
 
   char *mqreq = argv[index++];  // name of the request message queue
   char *mqresp = argv[index++]; // name of the response message queue
+  
+  ids_resp_t *response;
+  get_record(pidfile, mqreq, mqresp, &response);
+  check_record(pidfile, response);
+	
 
 
   return EXIT_SUCCESS;
