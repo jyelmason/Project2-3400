@@ -44,9 +44,15 @@ main (int argc, char **argv)
   char *mqreq = argv[index++];  // name of the request message queue
   char *mqresp = argv[index++]; // name of the response message queue
   
-  ids_resp_t *response;
-  get_record(pidfile, mqreq, mqresp, &response);
-  check_record(pidfile, response);
+  ids_resp_t *response = NULL;
+  
+  if(get_record(pidfile, mqreq, mqresp, &response))
+  {
+	  if(!check_record(pidfile, response))
+	  	return EXIT_FAILURE;
+	}
+	  	 
+  free (response);
 	
 
 
@@ -65,6 +71,10 @@ get_args (int argc, char **argv, char **pidfile, int *index)
         case 'p':
           *pidfile = optarg;
           break;
+        case 'o':
+        	break;
+        case 'k':
+        	break;	  
         default:
           return false;
         }

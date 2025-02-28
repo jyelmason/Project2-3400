@@ -23,34 +23,67 @@
    response from the server will have the ids_resp_t type field set to
    RESPONSE.
  */
-bool
+bool 
 get_record (char *filename, char *mqreq, char *mqresp, ids_resp_t **response)
 {
   mqd_t req_msg = mq_open(mqreq, O_WRONLY);
-  if(req_msg == -1)
+  if (req_msg == -1)
   {
     perror("req_msg failed");
     return false;
   }
-  
-  ids_req_t request;
-  
-  request.type = REQUEST;
-	strcpy(request.filename, filename);
-  
-  mq_send(req_msg, (const char*) &request, sizeof(request) , 10);
 
-  mqd_t resp_msg = mq_open(mqresp, O_RDONLY);
-  if(resp_msg == -1)
+  ids_req_t request;
+  request.type = REQUEST;
+  strcpy(request.filename, filename);
+
+  if (mq_send(req_msg, (const char*) &request, sizeof(request), 10) == -1)
   {
-    perror("resp_msg failed");
+    mq_close(req_msg);
     return false;
   }
+
+  mqd_t resp_msg = mq_open(mqresp, O_RDONLY);
+  if (resp_msg == -1)
+  {
+    perror("resp_msg failed");
+    mq_close(req_msg);
+    return false;
+  }
+
   struct mq_attr attr;
-  mq_getattr(resp_msg, &attr);
-  ids_resp_t *buffer = calloc(attr.mq_msgsize,1);
+  if (mq_getattr(resp_msg, &attr) == -1)
+  {
+    mq_close(req_msg);
+    mq_close(resp_msg);
+    return false;
+  }
+
+  ids_resp_t *buffer = calloc(attr.mq_msgsize, 1);
+  if (!buffer) 
+  {
+    mq_close(req_msg);
+    mq_close(resp_msg);
+    return false;
+  }
+
   unsigned int priority = 0;
-  mq_receive(resp_msg, (char*) buffer, attr.mq_msgsize, &priority);
+  if (mq_receive(resp_msg, (char*) buffer, attr.mq_msgsize, &priority) == -1)
+  {
+    free(buffer);
+    mq_close(req_msg);
+    mq_close(resp_msg);
+    return false;
+  }
+
+  if (buffer->type != RESPONSE)
+  {
+    free(buffer);
+    mq_close(req_msg);
+    mq_close(resp_msg);
+    return false;
+  }
+
   *response = buffer;
 
   mq_close(req_msg);
