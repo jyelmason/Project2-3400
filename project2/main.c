@@ -74,12 +74,18 @@ get_args (int argc, char **argv, char **pidfile, int *index)
         case 'o':
         	break;
         case 'k':
+          stop_server(pidfile);
         	break;	  
         default:
           return false;
         }
     }
   *index = optind;
+  for(int i = &index; i < argc; i++)
+  {
+    argv[i]; // not sure what to do with the files
+
+  }
   return true;
 }
 

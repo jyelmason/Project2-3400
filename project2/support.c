@@ -52,8 +52,22 @@ start_server (char *pidfile, char *mqreq, char *mqresp)
 bool
 stop_server (char *pidfile)
 {
+
+  int fd = open(pidfile, O_RDONLY);
+  char buffer[10];
+  read(fd,buffer,strlen(buffer));
+  int PID = atoi(buffer);
+  kill(PID,SIGUSR1);
+  for(int i = 0; i < 5; i++)
+  {
+    if(access("./server",F_OK) == -1){// not entirely sure
+      return true;
+    }
+    sleep(1);
+  }
+
   // Open PID file
   // Send SIGUSR1 to PID specified in it
   // Try up to 5 times of checking for the file deletion
-  return true;
+  return false;
 }
