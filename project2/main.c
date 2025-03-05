@@ -43,14 +43,23 @@ main (int argc, char **argv)
 
   char *mqreq = argv[index++];  // name of the request message queue
   char *mqresp = argv[index++]; // name of the response message queue
+  ids_resp_t *response;
   
-  ids_resp_t *response = NULL;
-  
-  if(get_record(pidfile, mqreq, mqresp, &response))
+  if (access(pidfile, F_OK) == -1) 
   {
-	  if(!check_record(pidfile, response))
-	  	return EXIT_FAILURE;
-	}
+    if (!start_server(pidfile, mqreq, mqresp)) 
+    	return EXIT_FAILURE;
+  }
+  
+  for(int i = index; i < argc; i++)
+  {
+  	response = NULL;
+  	if(get_record(argv[i], mqreq, mqresp, &response))
+  	{
+	  	if(!check_record(argv[i], response))
+	  		return EXIT_FAILURE;
+		}
+  }
 	  	 
   free (response);
 	
@@ -74,18 +83,14 @@ get_args (int argc, char **argv, char **pidfile, int *index)
         case 'o':
         	break;
         case 'k':
-          stop_server(pidfile);
+          stop_server(*pidfile);
         	break;	  
         default:
           return false;
         }
     }
+    
   *index = optind;
-  for(int i = &index; i < argc; i++)
-  {
-    argv[i]; // not sure what to do with the files
-
-  }
   return true;
 }
 

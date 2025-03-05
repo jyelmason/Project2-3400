@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "server.h"
 
@@ -30,10 +31,63 @@
    function should wait until it receives one of these messages, then
    return.
  */
-bool
-start_server (char *pidfile, char *mqreq, char *mqresp)
+bool 
+start_server(char *pidfile, char *mqreq, char *mqresp) 
 {
-  return true;
+  int pipefd[2]; 
+  pid_t pid;
+  
+  if (pipe(pipefd) == -1) 
+  {
+    perror("pipe");
+  	return false;
+  }
+
+  pid = fork();
+  if (pid < 0) {
+    perror("fork");
+    return false;
+  }
+
+  if (pid == 0) { 
+    // Redirect STDOUT to pipe
+    close(pipefd[0]); 
+    dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to write end of pipe
+    close(pipefd[1]); 
+
+    // Execute server program
+    execl("./server", "./server", mqreq, mqresp, pidfile, (char*) NULL);
+
+    perror("execl");
+    exit(EXIT_FAILURE);
+  } 
+  else 
+  { 
+    close(pipefd[1]); 
+
+    char buffer[256];
+    ssize_t nbytes;
+    
+    // Read server output
+    while ((nbytes = read(pipefd[0], buffer, 256 - 1)) > 0) 
+    {
+      buffer[nbytes] = '\0';
+      if (strcmp(buffer, "SUCCESS")) 
+      {
+        close(pipefd[0]);
+        return true;
+      } 
+      else if (strcmp(buffer, "ERROR")) 
+      {
+        close(pipefd[0]);
+        return false;
+      }
+    }
+
+    // Close read end of pipe
+    close(pipefd[0]);
+    return false;
+	}
 }
 
 /* Stops the server. Opens the file (pidfile) that contains the server's
@@ -52,22 +106,23 @@ start_server (char *pidfile, char *mqreq, char *mqresp)
 bool
 stop_server (char *pidfile)
 {
-
+  // Open PID file
+  // Send SIGUSR1 to PID specified in it
+  // Try up to 5 times of checking for the file deletion
   int fd = open(pidfile, O_RDONLY);
-  char buffer[10];
-  read(fd,buffer,strlen(buffer));
+  char buffer[255];
+  int bytes_read = read(fd,buffer, sizeof(buffer));
+  close(fd);
+  buffer[bytes_read] = '\0'; 
   int PID = atoi(buffer);
   kill(PID,SIGUSR1);
   for(int i = 0; i < 5; i++)
   {
-    if(access("./server",F_OK) == -1){// not entirely sure
+    if(access(pidfile, F_OK) == -1)
+    {// not entirely sure
       return true;
     }
     sleep(1);
   }
-
-  // Open PID file
-  // Send SIGUSR1 to PID specified in it
-  // Try up to 5 times of checking for the file deletion
   return false;
 }
