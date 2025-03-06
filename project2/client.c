@@ -156,7 +156,7 @@ check_record (char *filename, ids_resp_t *response)
 	else
 	{
 		match = false;
-		printf ("  permisions: %o [MISMATCH: %o]\n", response->mode, stats.st_mode);
+		printf ("  permissions: %o [MISMATCH %o]\n", response->mode, stats.st_mode);
 	}
 		
 	if(stats.st_size == response -> size)
@@ -164,7 +164,7 @@ check_record (char *filename, ids_resp_t *response)
 	else
 	{
 		match = false;
-		printf ("  size: %zu [MISMATCH: %zu]\n", response->size, stats.st_size);
+		printf ("  size: %zu [MISMATCH %zu]\n", response->size, stats.st_size);
 	}
 			
 	if(strcmp(buffer, response -> cksum) == 0)
@@ -172,7 +172,7 @@ check_record (char *filename, ids_resp_t *response)
 	else
 	{
 		match = false;
-		printf ("  cksum: %s [MISMATCH: %s]\n", response -> cksum, buffer);		
+		printf ("  cksum: %s [MISMATCH %s]\n", response -> cksum, buffer);		
 	}
  
   return match;

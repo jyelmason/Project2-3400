@@ -49,45 +49,44 @@ start_server(char *pidfile, char *mqreq, char *mqresp)
     return false;
   }
 
-  if (pid == 0) { 
+  if (pid == 0) 
+  { 
     // Redirect STDOUT to pipe
     close(pipefd[0]); 
     dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to write end of pipe
-    close(pipefd[1]); 
 
     // Execute server program
-    execl("./server", "./server", mqreq, mqresp, pidfile, (char*) NULL);
+    execl("./server", "./server", mqreq, mqresp, "-p", pidfile, (char*) NULL);
 
     perror("execl");
     exit(EXIT_FAILURE);
-  } 
-  else 
-  { 
-    close(pipefd[1]); 
+  }  
+  
+  close(pipefd[1]); 
 
-    char buffer[256];
-    ssize_t nbytes;
-    
-    // Read server output
-    while ((nbytes = read(pipefd[0], buffer, 256 - 1)) > 0) 
+  char buffer[256];
+  ssize_t nbytes;
+  
+  // Read server output
+  while ((nbytes = read(pipefd[0], buffer, 256 - 1)) > 0) 
+  {
+    buffer[nbytes] = '\0';
+    if (strstr(buffer, "SUCCESS") != NULL) 
     {
-      buffer[nbytes] = '\0';
-      if (strcmp(buffer, "SUCCESS")) 
-      {
-        close(pipefd[0]);
-        return true;
-      } 
-      else if (strcmp(buffer, "ERROR")) 
-      {
-        close(pipefd[0]);
-        return false;
-      }
+      close(pipefd[0]);
+      return true;
+    } 
+    else if (strstr(buffer, "ERROR") != NULL) 
+    {
+      close(pipefd[0]);
+      return false;
     }
+  }
 
-    // Close read end of pipe
-    close(pipefd[0]);
-    return false;
-	}
+  // Close read end of pipe
+  close(pipefd[0]);
+  return false;
+	
 }
 
 /* Stops the server. Opens the file (pidfile) that contains the server's

@@ -59,9 +59,16 @@ main (int argc, char **argv)
 	  	if(!check_record(argv[i], response))
 	  		return EXIT_FAILURE;
 		}
+		else
+			printf("ERROR: Failed to get record for this_file_does_not_exist\n");// This works but it might be wrong
+		free (response);
   }
-	  	 
-  free (response);
+  
+  stop_server(pidfile);	 
+  
+  // Last step of stage 3
+  //int fd = open(*pidfile, O_RDONLY);
+  //ftruncate(fd, )
 	
 
 
@@ -69,6 +76,7 @@ main (int argc, char **argv)
 }
 
 /* Parse the command-line arguments. */
+//TODO change function arguments (wittman told me to use getOpt)
 static bool
 get_args (int argc, char **argv, char **pidfile, int *index)
 {
@@ -83,7 +91,6 @@ get_args (int argc, char **argv, char **pidfile, int *index)
         case 'o':
         	break;
         case 'k':
-          stop_server(*pidfile);
         	break;	  
         default:
           return false;
