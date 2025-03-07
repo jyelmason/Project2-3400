@@ -1,0 +1,4 @@
+../data/wrong_size.txt:
+  permissions: 100640
+  size: 211 [MISMATCH 11]
+  cksum: 986237330

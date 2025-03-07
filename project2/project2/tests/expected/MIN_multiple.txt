@@ -1,0 +1,32 @@
+../data/json_bad_id.txt:
+  permissions: 100640
+  size: 28
+  cksum: 264869074
+../data/json_bad_token.txt:
+  permissions: 100640
+  size: 17
+  cksum: 2768384449
+../data/json_bad.txt:
+  permissions: 100640
+  size: 12
+  cksum: 1272877507
+../data/json_int.txt:
+  permissions: 100640
+  size: 19
+  cksum: 3201732720
+../data/json_max.txt:
+  permissions: 100640
+  size: 43
+  cksum: 3313559481
+../data/json_multiple.txt:
+  permissions: 100640
+  size: 38
+  cksum: 643955392
+../data/json_several.txt:
+  permissions: 100640
+  size: 89
+  cksum: 387100030
+../data/json.txt:
+  permissions: 100640
+  size: 34
+  cksum: 1345525449

@@ -1,0 +1,4 @@
+../data/int.txt:
+  permissions: 100640
+  size: 4
+  cksum: 2330645186

@@ -1,0 +1,4 @@
+../data/wrong_perms.txt:
+  permissions: 100040 [MISMATCH 100640]
+  size: 42
+  cksum: 2296746278
